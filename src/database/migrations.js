@@ -1,14 +1,14 @@
 /**
- * migrations.js — Création automatique des tables au démarrage
- * Compatible SQLite (sql.js)
+ * migrations.js â€” CrÃ©ation automatique des tables au dÃ©marrage
+ * Compatible SQLite (sql.js) et PostgreSQL (pg)
  */
 
 /**
- * Exécuter les migrations pour créer les tables nécessaires
- * @param {object} db — Instance de la couche DB
+ * ExÃ©cuter les migrations pour crÃ©er les tables nÃ©cessaires
+ * @param {object} db â€” Instance de la couche DB
  */
-function runMigrations(db) {
-  db.exec(`
+async function runMigrations(db) {
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       user_id TEXT NOT NULL,
       guild_id TEXT NOT NULL,
@@ -20,14 +20,14 @@ function runMigrations(db) {
     )
   `);
 
-  db.exec(`
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS guild_config (
       guild_id TEXT PRIMARY KEY,
       config_json TEXT DEFAULT '{}'
     )
   `);
 
-  db.exec(`
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS role_map (
       guild_id TEXT NOT NULL,
       level INTEGER NOT NULL,
@@ -36,7 +36,7 @@ function runMigrations(db) {
     )
   `);
 
-  db.exec(`
+  await db.exec(`
     CREATE TABLE IF NOT EXISTS blacklist (
       guild_id TEXT NOT NULL,
       target_id TEXT NOT NULL,
@@ -45,18 +45,32 @@ function runMigrations(db) {
     )
   `);
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS event_logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      guild_id TEXT NOT NULL,
-      event_type TEXT NOT NULL,
-      user_id TEXT,
-      details TEXT,
-      created_at INTEGER
-    )
-  `);
+  // SERIAL pour PostgreSQL au lieu de AUTOINCREMENT (SQLite-only)
+  if (db.isPostgres) {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS event_logs (
+        id SERIAL PRIMARY KEY,
+        guild_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        user_id TEXT,
+        details TEXT,
+        created_at INTEGER
+      )
+    `);
+  } else {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS event_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        user_id TEXT,
+        details TEXT,
+        created_at INTEGER
+      )
+    `);
+  }
 
-  console.log('✅ Migrations exécutées — tables prêtes.');
+  console.log('âœ… Migrations exÃ©cutÃ©es â€” tables prÃªtes.');
 }
 
 module.exports = { runMigrations };
