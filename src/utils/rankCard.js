@@ -1,22 +1,22 @@
 /**
- * rankCard.js — Génération d'une rank card image ultra-premium
- * Utilise @napi-rs/canvas pour créer une image haut de gamme
- * Style : fond sombre avec motifs, avatar glow, icône serveur, barre XP dynamique,
- *         badges Level/Rank stylisés, 4 colonnes de stats, indicateur prochain rôle
+ * rankCard.js â€” GÃ©nÃ©ration d'une rank card image ultra-premium
+ * Utilise @napi-rs/canvas pour crÃ©er une image haut de gamme
+ * Style : fond sombre avec motifs, avatar glow, icÃ´ne serveur, barre XP dynamique,
+ *         badges Level/Rank stylisÃ©s, 4 colonnes de stats, indicateur prochain rÃ´le
  */
 const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 const { xpForLevel, xpToNextLevel, progressPercent } = require('../systems/levels');
 
-// Police universelle avec fallback pour caractères arabes/Tifinagh/spéciaux
-// Inclut "Segoe UI Emoji" pour les caractères spéciaux et symboles Unicode
-const FONT = '"Segoe UI", "Segoe UI Emoji", "Ebrima", "Tahoma", "Simplified Arabic", "Traditional Arabic", "Arial", sans-serif';
+// Police universelle avec fallback pour caractÃ¨res arabes/Tifinagh/spÃ©ciaux
+// Inclut "Segoe UI Emoji" pour les caractÃ¨res spÃ©ciaux et symboles Unicode
+const FONT = '"Segoe UI", "DejaVu Sans", "Noto Sans", "Segoe UI Emoji", "Ebrima", "Tahoma", "Simplified Arabic", "Traditional Arabic", "Arial", sans-serif';
 
-// ═══════════════════════════════════════
-//  ENREGISTREMENT DES POLICES SYSTÈME
-// ═══════════════════════════════════════
-// Charger Segoe UI Emoji pour le rendu des symboles spéciaux sur Windows
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  ENREGISTREMENT DES POLICES SYSTÃˆME
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// Charger Segoe UI Emoji pour le rendu des symboles spÃ©ciaux sur Windows
 try {
     const emojiPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'seguiemj.ttf');
     GlobalFonts.registerFromPath(emojiPath, 'Segoe UI Emoji');
@@ -36,17 +36,17 @@ try {
     console.warn('[RankCard] Impossible de charger Ebrima:', e.message);
 }
 
-// Regex : caractères bien supportés par les polices système Windows
+// Regex : caractÃ¨res bien supportÃ©s par les polices systÃ¨me Windows
 // Latin, Latin Extended, Greek, Cyrillic, Arabic, Arabic Supplement,
 // Symboles courants, CJK, Hangul, demi-chasse, Tifinagh (Ebrima)
 const SAFE_CHARS = /^[\u0000-\u024F\u0370-\u03FF\u0400-\u04FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u1E00-\u1EFF\u2000-\u27BF\u2C60-\u2C7F\u2D30-\u2D7F\u3000-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFB50-\uFDFF\uFE70-\uFEFF\uFE00-\uFE0F\u200B-\u200F\u2028-\u202F\u2060-\u206F\s\d_.!@#$%^&*()\-+=\[\]{}<>,;:'"\/\\|~`\u{1F000}-\u{1FAFF}]+$/u;
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  HELPERS
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Formater un nombre en version compacte (23 000 → 23.0K)
+ * Formater un nombre en version compacte (23 000 â†’ 23.0K)
  */
 function formatCompact(n) {
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -92,21 +92,21 @@ async function safeLoadImage(url) {
 }
 
 /**
- * Obtenir une couleur de gradient basée sur le pourcentage
+ * Obtenir une couleur de gradient basÃ©e sur le pourcentage
  */
 function getProgressColor(percent) {
-    if (percent >= 80) return { start: '#FFD700', end: '#FF6B35' }; // Or → Orange
-    if (percent >= 50) return { start: '#00D4AA', end: '#5865F2' }; // Emeraude → Bleu Discord
-    if (percent >= 25) return { start: '#5865F2', end: '#9B59B6' }; // Bleu → Violet
-    return { start: '#667eea', end: '#764ba2' }; // Lavande → Violet
+    if (percent >= 80) return { start: '#FFD700', end: '#FF6B35' }; // Or â†’ Orange
+    if (percent >= 50) return { start: '#00D4AA', end: '#5865F2' }; // Emeraude â†’ Bleu Discord
+    if (percent >= 25) return { start: '#5865F2', end: '#9B59B6' }; // Bleu â†’ Violet
+    return { start: '#667eea', end: '#764ba2' }; // Lavande â†’ Violet
 }
 
 /**
- * Obtenir un nom d'affichage sûr pour le rendu Canvas.
- * Si le displayName contient des caractères non supportés par les polices,
+ * Obtenir un nom d'affichage sÃ»r pour le rendu Canvas.
+ * Si le displayName contient des caractÃ¨res non supportÃ©s par les polices,
  * on fallback vers globalName puis username (toujours ASCII-safe).
- * @param {object} user — Discord User object
- * @param {number} maxLen — Longueur max
+ * @param {object} user â€” Discord User object
+ * @param {number} maxLen â€” Longueur max
  * @returns {string}
  */
 function getSafeName(user, maxLen) {
@@ -120,44 +120,44 @@ function getSafeName(user, maxLen) {
             name = user.username;
         }
     }
-    if (name.length > maxLen) return name.substring(0, maxLen) + '…';
+    if (name.length > maxLen) return name.substring(0, maxLen) + 'â€¦';
     return name;
 }
 
 /**
- * Obtenir un nom sûr pour le serveur — filtre les caractères non supportés
+ * Obtenir un nom sÃ»r pour le serveur â€” filtre les caractÃ¨res non supportÃ©s
  */
 function getSafeGuildName(guildName, maxLen) {
-    // Garder tous les caractères supportés, remplacer les autres par rien
+    // Garder tous les caractÃ¨res supportÃ©s, remplacer les autres par rien
     let safe = '';
     for (const char of guildName) {
         if (SAFE_CHARS.test(char)) {
             safe += char;
         }
     }
-    if (!safe) safe = guildName; // Si tout est filtré, garder l'original
-    if (safe.length > maxLen) return safe.substring(0, maxLen) + '…';
+    if (!safe) safe = guildName; // Si tout est filtrÃ©, garder l'original
+    if (safe.length > maxLen) return safe.substring(0, maxLen) + 'â€¦';
     return safe;
 }
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  MAIN CARD GENERATOR
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /**
- * Générer la rank card ultra-premium
+ * GÃ©nÃ©rer la rank card ultra-premium
  * @param {object} options
- * @param {string} options.username — Nom d'affichage
- * @param {string} options.discriminator — Tag utilisateur (ex: @username)
- * @param {string} options.avatarURL — URL de l'avatar utilisateur
- * @param {string|null} options.guildIconURL — URL de l'icône du serveur
- * @param {string} options.guildName — Nom du serveur
- * @param {number} options.level — Niveau actuel
- * @param {number} options.rank — Position dans le leaderboard
- * @param {number} options.xp — XP total
- * @param {number} options.totalMessages — Nombre de messages
- * @param {number} options.totalUsers — Nombre total de membres classés
- * @returns {Promise<Buffer>} — Image PNG en buffer
+ * @param {string} options.username â€” Nom d'affichage
+ * @param {string} options.discriminator â€” Tag utilisateur (ex: @username)
+ * @param {string} options.avatarURL â€” URL de l'avatar utilisateur
+ * @param {string|null} options.guildIconURL â€” URL de l'icÃ´ne du serveur
+ * @param {string} options.guildName â€” Nom du serveur
+ * @param {number} options.level â€” Niveau actuel
+ * @param {number} options.rank â€” Position dans le leaderboard
+ * @param {number} options.xp â€” XP total
+ * @param {number} options.totalMessages â€” Nombre de messages
+ * @param {number} options.totalUsers â€” Nombre total de membres classÃ©s
+ * @returns {Promise<Buffer>} â€” Image PNG en buffer
  */
 async function generateRankCard({
     username,
@@ -181,9 +181,9 @@ async function generateRankCard({
     const currentLevelXp = xpForLevel(level);
     const progressColors = getProgressColor(progress);
 
-    // ═══════════════════════════════════════
-    // 1. FOND — Dégradé sombre premium + motifs
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 1. FOND â€” DÃ©gradÃ© sombre premium + motifs
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const bgGrad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
     bgGrad.addColorStop(0, '#0d0d1a');
     bgGrad.addColorStop(0.3, '#1a1a2e');
@@ -217,7 +217,7 @@ async function generateRankCard({
     }
     ctx.restore();
 
-    // Particules lumineuses aléatoires (seed déterministe pour aspect cohérent)
+    // Particules lumineuses alÃ©atoires (seed dÃ©terministe pour aspect cohÃ©rent)
     ctx.save();
     const particleSeed = (level * 7 + rank * 3 + xp) % 1000;
     for (let i = 0; i < 20; i++) {
@@ -231,7 +231,7 @@ async function generateRankCard({
     }
     ctx.restore();
 
-    // Bordure extérieure subtile
+    // Bordure extÃ©rieure subtile
     roundRect(ctx, 0, 0, WIDTH, HEIGHT, 24);
     const borderGrad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
     borderGrad.addColorStop(0, 'rgba(88, 101, 242, 0.3)');
@@ -241,7 +241,7 @@ async function generateRankCard({
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Ligne séparatrice horizontale décorative
+    // Ligne sÃ©paratrice horizontale dÃ©corative
     ctx.save();
     const lineGrad = ctx.createLinearGradient(30, 0, WIDTH - 30, 0);
     lineGrad.addColorStop(0, 'rgba(88, 101, 242, 0)');
@@ -257,25 +257,25 @@ async function generateRankCard({
     ctx.stroke();
     ctx.restore();
 
-    // ═══════════════════════════════════════
-    // 2. ICÔNE DU SERVEUR + NOM (coin haut droit)
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 2. ICÃ”NE DU SERVEUR + NOM (coin haut droit)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const guildIconSize = 36;
     const guildPadding = 25;
     const guildIconX = WIDTH - guildPadding - guildIconSize;
     const guildIconY = guildPadding;
 
-    // Nom du serveur (à gauche de l'icône)
+    // Nom du serveur (Ã  gauche de l'icÃ´ne)
     ctx.save();
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.font = `13px ${FONT}`;
-    const truncatedGuildName = guildName.length > 25 ? guildName.substring(0, 25) + '…' : guildName;
+    const truncatedGuildName = guildName.length > 25 ? guildName.substring(0, 25) + 'â€¦' : guildName;
     ctx.fillText(truncatedGuildName, guildIconX - 10, guildIconY + guildIconSize / 2 + 5);
     ctx.textAlign = 'left';
     ctx.restore();
 
-    // Icône serveur circulaire
+    // IcÃ´ne serveur circulaire
     if (guildIconURL) {
         const guildIcon = await safeLoadImage(guildIconURL);
         if (guildIcon) {
@@ -290,16 +290,16 @@ async function generateRankCard({
         }
     }
 
-    // ═══════════════════════════════════════
-    // 3. AVATAR — Cercle avec glow + bordure gradient
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 3. AVATAR â€” Cercle avec glow + bordure gradient
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const avatarSize = 140;
     const avatarX = 45;
     const avatarY = 25;
     const avatarCenterX = avatarX + avatarSize / 2;
     const avatarCenterY = avatarY + avatarSize / 2;
 
-    // Glow derrière l'avatar (halo lumineux)
+    // Glow derriÃ¨re l'avatar (halo lumineux)
     ctx.save();
     const glowGrad = ctx.createRadialGradient(avatarCenterX, avatarCenterY, avatarSize / 2, avatarCenterX, avatarCenterY, avatarSize / 2 + 25);
     glowGrad.addColorStop(0, 'rgba(88, 101, 242, 0.25)');
@@ -323,7 +323,7 @@ async function generateRankCard({
     ctx.fillStyle = '#0d0d1a';
     ctx.fill();
 
-    // Avatar clippé circulaire
+    // Avatar clippÃ© circulaire
     ctx.save();
     drawCircle(ctx, avatarCenterX, avatarCenterY, avatarSize / 2);
     ctx.clip();
@@ -341,7 +341,7 @@ async function generateRankCard({
     }
     ctx.restore();
 
-    // Petit badge circulaire en bas à droite de l'avatar (indicateur en ligne)
+    // Petit badge circulaire en bas Ã  droite de l'avatar (indicateur en ligne)
     drawCircle(ctx, avatarCenterX + avatarSize / 2 - 8, avatarCenterY + avatarSize / 2 - 8, 12);
     ctx.fillStyle = '#0d0d1a';
     ctx.fill();
@@ -349,16 +349,16 @@ async function generateRankCard({
     ctx.fillStyle = '#43B581'; // Vert " en ligne "
     ctx.fill();
 
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 4. USERNAME + TAG
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const textX = avatarX + avatarSize + 30;
     const textStartY = avatarY + 22;
 
     // Username
     ctx.fillStyle = '#FFFFFF';
     ctx.font = `bold 30px ${FONT}`;
-    const displayName = username.length > 20 ? username.substring(0, 20) + '…' : username;
+    const displayName = username.length > 20 ? username.substring(0, 20) + 'â€¦' : username;
     ctx.fillText(displayName, textX, textStartY + 10);
 
     // @tag en gris
@@ -366,9 +366,9 @@ async function generateRankCard({
     ctx.font = `15px ${FONT}`;
     ctx.fillText(`@${discriminator}`, textX, textStartY + 34);
 
-    // ═══════════════════════════════════════
-    // 5. BADGES LEVEL & RANK (à droite du nom)
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 5. BADGES LEVEL & RANK (Ã  droite du nom)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const badgeY = textStartY - 5;
 
     // Badge Level
@@ -407,9 +407,9 @@ async function generateRankCard({
     ctx.fillText(rankText, rankBadgeX + rankBadgeWidth / 2, badgeY + 19);
     ctx.textAlign = 'left';
 
-    // ═══════════════════════════════════════
-    // 6. XP DÉTAILLÉ (sous le nom)
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 6. XP DÃ‰TAILLÃ‰ (sous le nom)
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const xpInfoY = textStartY + 55;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.font = `14px ${FONT}`;
@@ -418,16 +418,16 @@ async function generateRankCard({
 
     ctx.fillText(`${xpInLevel.toLocaleString('fr-FR')} / ${xpNeeded.toLocaleString('fr-FR')} XP`, textX, xpInfoY);
 
-    // Pourcentage à droite
+    // Pourcentage Ã  droite
     ctx.textAlign = 'right';
     ctx.fillStyle = progressColors.start;
     ctx.font = `bold 14px ${FONT}`;
     ctx.fillText(`${progress}%`, WIDTH - 50, xpInfoY);
     ctx.textAlign = 'left';
 
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // 7. BARRE DE PROGRESSION XP
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const barX = textX;
     const barY = xpInfoY + 12;
     const barW = WIDTH - textX - 50;
@@ -439,7 +439,7 @@ async function generateRankCard({
     ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.fill();
 
-    // Remplissage avec gradient dynamique (couleur basée sur le progression)
+    // Remplissage avec gradient dynamique (couleur basÃ©e sur le progression)
     const fillW = Math.max(barR * 2, (progress / 100) * barW);
     roundRect(ctx, barX, barY, fillW, barH, barR);
     const barGrad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
@@ -455,15 +455,15 @@ async function generateRankCard({
     ctx.fill();
     ctx.restore();
 
-    // ═══════════════════════════════════════
-    // 8. STATS — 4 colonnes élégantes
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 8. STATS â€” 4 colonnes Ã©lÃ©gantes
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const statsY = 210;
     const statsBoxH = 120;
     const statsBoxPadding = 25;
     const statBoxWidth = (WIDTH - statsBoxPadding * 2 - 30) / 4;
 
-    // Fond des stats (carte sombre intérieure)
+    // Fond des stats (carte sombre intÃ©rieure)
     roundRect(ctx, statsBoxPadding, statsY, WIDTH - statsBoxPadding * 2, statsBoxH, 16);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
     ctx.fill();
@@ -485,7 +485,7 @@ async function generateRankCard({
         const colCenterX = statsBoxPadding + 15 + statBoxWidth * i + statBoxWidth / 2;
         const stat = stats[i];
 
-        // Séparateur vertical (sauf premier)
+        // SÃ©parateur vertical (sauf premier)
         if (i > 0) {
             ctx.save();
             const sepX = statsBoxPadding + 15 + statBoxWidth * i;
@@ -520,9 +520,9 @@ async function generateRankCard({
 
     ctx.textAlign = 'left';
 
-    // ═══════════════════════════════════════
-    // 9. FOOTER — Informations supplémentaires
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 9. FOOTER â€” Informations supplÃ©mentaires
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const footerY = statsY + statsBoxH + 18;
 
     // Progress bar mini dans le footer (niveau prochain)
@@ -530,7 +530,7 @@ async function generateRankCard({
     ctx.font = `12px ${FONT}`;
     ctx.fillText(`Niveau suivant: ${(level + 1 <= 80) ? level + 1 : 'MAX'}`, statsBoxPadding + 10, footerY + 4);
 
-    // XP restant à droite
+    // XP restant Ã  droite
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.font = `12px ${FONT}`;
@@ -542,19 +542,19 @@ async function generateRankCard({
     );
     ctx.textAlign = 'left';
 
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // EXPORT
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     return canvas.toBuffer('image/png');
 }
 
-// ═══════════════════════════════════════
-//  LEADERBOARD CARD GENERATOR — ULTRA PREMIUM
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+//  LEADERBOARD CARD GENERATOR â€” ULTRA PREMIUM
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // Couleurs pour le podium top 3
 const PODIUM_THEMES = [
-    { // #1 — OR
+    { // #1 â€” OR
         border: ['#FFD700', '#FFA500'],
         glow: 'rgba(255, 215, 0, 0.30)',
         glowOuter: 'rgba(255, 215, 0, 0.08)',
@@ -562,9 +562,9 @@ const PODIUM_THEMES = [
         bg: 'rgba(255, 215, 0, 0.08)',
         bgBorder: 'rgba(255, 215, 0, 0.25)',
         avatarSize: 68,
-        label: '👑',
+        label: 'ðŸ‘‘',
     },
-    { // #2 — ARGENT
+    { // #2 â€” ARGENT
         border: ['#C0C0C0', '#8A8A8A'],
         glow: 'rgba(192, 192, 192, 0.22)',
         glowOuter: 'rgba(192, 192, 192, 0.06)',
@@ -572,9 +572,9 @@ const PODIUM_THEMES = [
         bg: 'rgba(192, 192, 192, 0.06)',
         bgBorder: 'rgba(192, 192, 192, 0.18)',
         avatarSize: 60,
-        label: '🥈',
+        label: 'ðŸ¥ˆ',
     },
-    { // #3 — BRONZE
+    { // #3 â€” BRONZE
         border: ['#CD7F32', '#8B4513'],
         glow: 'rgba(205, 127, 50, 0.20)',
         glowOuter: 'rgba(205, 127, 50, 0.05)',
@@ -582,12 +582,12 @@ const PODIUM_THEMES = [
         bg: 'rgba(205, 127, 50, 0.05)',
         bgBorder: 'rgba(205, 127, 50, 0.15)',
         avatarSize: 54,
-        label: '🥉',
+        label: 'ðŸ¥‰',
     },
 ];
 
 /**
- * Obtenir une couleur de barre pour les entrées leaderboard
+ * Obtenir une couleur de barre pour les entrÃ©es leaderboard
  */
 function getLeaderboardBarColor(percent) {
     if (percent >= 75) return { start: '#FFD700', end: '#FF6B35' };
@@ -597,11 +597,11 @@ function getLeaderboardBarColor(percent) {
 }
 
 /**
- * Générer une image leaderboard ultra-premium
- * @param {object[]} entries — Top utilisateurs (avec user_id, xp, level, total_messages)
- * @param {object} guild — L'objet guild Discord
- * @param {Map<string, object>} userMap — Map des user_id → objets User Discord
- * @returns {Promise<Buffer>} — Image PNG
+ * GÃ©nÃ©rer une image leaderboard ultra-premium
+ * @param {object[]} entries â€” Top utilisateurs (avec user_id, xp, level, total_messages)
+ * @param {object} guild â€” L'objet guild Discord
+ * @param {Map<string, object>} userMap â€” Map des user_id â†’ objets User Discord
+ * @returns {Promise<Buffer>} â€” Image PNG
  */
 async function generateLeaderboardCard(entries, guild, userMap) {
     const WIDTH = 950;
@@ -618,9 +618,9 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     const canvas = createCanvas(WIDTH, HEIGHT);
     const ctx = canvas.getContext('2d');
 
-    // ═══════════════════════════════════════
-    // 1. FOND — Gradient profond + motifs géométriques
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 1. FOND â€” Gradient profond + motifs gÃ©omÃ©triques
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const bgGrad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
     bgGrad.addColorStop(0, '#080818');
     bgGrad.addColorStop(0.25, '#0f0f2a');
@@ -631,7 +631,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.fillStyle = bgGrad;
     ctx.fill();
 
-    // Motifs diamant subtils en arrière-plan
+    // Motifs diamant subtils en arriÃ¨re-plan
     ctx.save();
     ctx.globalAlpha = 0.025;
     ctx.strokeStyle = '#FFFFFF';
@@ -666,7 +666,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     }
     ctx.restore();
 
-    // Lueur ambiante en haut (derrière le header)
+    // Lueur ambiante en haut (derriÃ¨re le header)
     ctx.save();
     const ambientGlow = ctx.createRadialGradient(WIDTH / 2, 0, 50, WIDTH / 2, 0, 400);
     ambientGlow.addColorStop(0, 'rgba(88, 101, 242, 0.12)');
@@ -676,7 +676,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.fillRect(0, 0, WIDTH, 250);
     ctx.restore();
 
-    // Bordure extérieure gradient premium
+    // Bordure extÃ©rieure gradient premium
     roundRect(ctx, 0, 0, WIDTH, HEIGHT, 24);
     const borderGrad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
     borderGrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
@@ -688,15 +688,15 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Bordure intérieure subtile
+    // Bordure intÃ©rieure subtile
     roundRect(ctx, 3, 3, WIDTH - 6, HEIGHT - 6, 22);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // ═══════════════════════════════════════
-    // 2. HEADER — Bannière premium
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 2. HEADER â€” BanniÃ¨re premium
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     // Fond header avec gradient distinct
     roundRect(ctx, PADDING - 5, 15, WIDTH - (PADDING - 5) * 2, HEADER_H - 25, 16);
@@ -707,11 +707,11 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Icône du serveur (grande, avec glow)
+    // IcÃ´ne du serveur (grande, avec glow)
     const guildIconSize = 52;
     const guildIcon = await safeLoadImage(guild.iconURL({ extension: 'png', size: 128 }));
     if (guildIcon) {
-        // Glow derrière l'icône
+        // Glow derriÃ¨re l'icÃ´ne
         ctx.save();
         const iconGlow = ctx.createRadialGradient(PADDING + 22 + guildIconSize / 2, 15 + (HEADER_H - 25) / 2, guildIconSize / 2 - 5, PADDING + 22 + guildIconSize / 2, 15 + (HEADER_H - 25) / 2, guildIconSize / 2 + 15);
         iconGlow.addColorStop(0, 'rgba(88, 101, 242, 0.2)');
@@ -721,7 +721,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.fill();
         ctx.restore();
 
-        // Bordure de l'icône
+        // Bordure de l'icÃ´ne
         drawCircle(ctx, PADDING + 22 + guildIconSize / 2, 15 + (HEADER_H - 25) / 2, guildIconSize / 2 + 3);
         const iconBorderGrad = ctx.createLinearGradient(PADDING + 22, 15, PADDING + 22 + guildIconSize, 15 + guildIconSize);
         iconBorderGrad.addColorStop(0, '#5865F2');
@@ -729,12 +729,12 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.fillStyle = iconBorderGrad;
         ctx.fill();
 
-        // Fond sombre sous l'icône
+        // Fond sombre sous l'icÃ´ne
         drawCircle(ctx, PADDING + 22 + guildIconSize / 2, 15 + (HEADER_H - 25) / 2, guildIconSize / 2 + 1);
         ctx.fillStyle = '#0d0d1a';
         ctx.fill();
 
-        // Icône clippée
+        // IcÃ´ne clippÃ©e
         ctx.save();
         drawCircle(ctx, PADDING + 22 + guildIconSize / 2, 15 + (HEADER_H - 25) / 2, guildIconSize / 2);
         ctx.clip();
@@ -742,7 +742,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.restore();
     }
 
-    // Titre "LEADERBOARD" avec icône trophée
+    // Titre "LEADERBOARD" avec icÃ´ne trophÃ©e
     const titleX = guildIcon ? PADDING + 22 + guildIconSize + 18 : PADDING + 20;
     const titleCenterY = 15 + (HEADER_H - 25) / 2;
 
@@ -760,7 +760,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.font = `13px ${FONT}`;
-    ctx.fillText(`${entries.length} joueurs classés`, WIDTH - PADDING - 10, titleCenterY + 2);
+    ctx.fillText(`${entries.length} joueurs classÃ©s`, WIDTH - PADDING - 10, titleCenterY + 2);
 
     // Date (droite, sous le compteur)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
@@ -769,7 +769,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.fillText(now.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }), WIDTH - PADDING - 10, titleCenterY + 20);
     ctx.textAlign = 'left';
 
-    // Ligne séparatrice sous le header
+    // Ligne sÃ©paratrice sous le header
     ctx.save();
     const hLineGrad = ctx.createLinearGradient(PADDING, 0, WIDTH - PADDING, 0);
     hLineGrad.addColorStop(0, 'rgba(255, 215, 0, 0)');
@@ -787,9 +787,9 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     ctx.stroke();
     ctx.restore();
 
-    // ═══════════════════════════════════════
-    // 3. PODIUM — Top 3 avec grands avatars et glow
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 3. PODIUM â€” Top 3 avec grands avatars et glow
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     if (podiumCount > 0) {
         const podiumY = HEADER_H + 10;
         const podiumCardW = (WIDTH - PADDING * 2 - 20) / Math.max(podiumCount, 1);
@@ -815,7 +815,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
             const avatarSize = theme.avatarSize;
             const avatarCY = podiumY + 12 + avatarSize / 2;
 
-            // Glow radial derrière l'avatar
+            // Glow radial derriÃ¨re l'avatar
             ctx.save();
             const glow = ctx.createRadialGradient(centerX, avatarCY, avatarSize / 3, centerX, avatarCY, avatarSize / 2 + 20);
             glow.addColorStop(0, theme.glow);
@@ -860,12 +860,12 @@ async function generateLeaderboardCard(entries, guild, userMap) {
                 }
             }
 
-            // Label rang (couronne ou médaille) + numéro
+            // Label rang (couronne ou mÃ©daille) + numÃ©ro
             ctx.textAlign = 'center';
             ctx.font = `bold ${i === 0 ? '14' : '12'}px ${FONT}`;
             ctx.fillText(`#${i + 1}`, centerX, avatarCY - avatarSize / 2 - 6);
 
-            // Numéro du rang (#1, #2, #3) en haut à droite de la carte
+            // NumÃ©ro du rang (#1, #2, #3) en haut Ã  droite de la carte
             ctx.save();
             const rankNumX = cardX + cardW - 14;
             const rankNumY = podiumY + 14;
@@ -921,7 +921,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
             ctx.textAlign = 'left';
         }
 
-        // Ligne séparatrice après le podium
+        // Ligne sÃ©paratrice aprÃ¨s le podium
         ctx.save();
         const podSepGrad = ctx.createLinearGradient(PADDING + 30, 0, WIDTH - PADDING - 30, 0);
         podSepGrad.addColorStop(0, 'rgba(88, 101, 242, 0)');
@@ -938,9 +938,9 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.restore();
     }
 
-    // ═══════════════════════════════════════
-    // 4. ENTRÉES 4-10 — Cartes stylisées
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 4. ENTRÃ‰ES 4-10 â€” Cartes stylisÃ©es
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const listStartY = HEADER_H + (podiumCount > 0 ? PODIUM_H + 20 : 10);
 
     for (let i = 0; i < restEntries.length; i++) {
@@ -957,13 +957,13 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.fillStyle = i % 2 === 0 ? 'rgba(255, 255, 255, 0.025)' : 'rgba(0, 0, 0, 0.12)';
         ctx.fill();
 
-        // Bordure très subtile
+        // Bordure trÃ¨s subtile
         roundRect(ctx, cardX, y, cardW, cardH, 10);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
         ctx.lineWidth = 0.5;
         ctx.stroke();
 
-        // Badge numérique du rang
+        // Badge numÃ©rique du rang
         const badgeX = cardX + 15;
         const badgeY = y + cardH / 2;
         const badgeSize = 28;
@@ -1016,7 +1016,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.font = `bold 12px ${FONT}`;
         ctx.fillText(`Level ${entry.level}`, nameX, y + cardH / 2 + 12);
 
-        // XP (à droite de la barre)
+        // XP (Ã  droite de la barre)
         const rightEdge = cardX + cardW - 15;
 
         // Barre de progression large
@@ -1048,7 +1048,7 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.fill();
         ctx.restore();
 
-        // Pourcentage à droite de la barre
+        // Pourcentage Ã  droite de la barre
         ctx.textAlign = 'right';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.font = `11px ${FONT}`;
@@ -1061,12 +1061,12 @@ async function generateLeaderboardCard(entries, guild, userMap) {
         ctx.textAlign = 'left';
     }
 
-    // ═══════════════════════════════════════
-    // 5. FOOTER — Élégant avec séparateur
-    // ═══════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // 5. FOOTER â€” Ã‰lÃ©gant avec sÃ©parateur
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     const footerY = HEIGHT - FOOTER_H;
 
-    // Ligne séparatrice footer
+    // Ligne sÃ©paratrice footer
     ctx.save();
     const fLineGrad = ctx.createLinearGradient(PADDING + 20, 0, WIDTH - PADDING - 20, 0);
     fLineGrad.addColorStop(0, 'rgba(0, 212, 170, 0)');
@@ -1091,19 +1091,19 @@ async function generateLeaderboardCard(entries, guild, userMap) {
     // Petite ligne de copyright/serveur
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.font = `10px ${FONT}`;
-    ctx.fillText(`${getSafeGuildName(guild.name, 40)} — Leveling System`, WIDTH / 2, footerY + 46);
+    ctx.fillText(`${getSafeGuildName(guild.name, 40)} â€” Leveling System`, WIDTH / 2, footerY + 46);
     ctx.textAlign = 'left';
 
     return canvas.toBuffer('image/png');
 }
 
 /**
- * Générer la rank card et la convertir en AttachmentBuilder Discord
+ * GÃ©nÃ©rer la rank card et la convertir en AttachmentBuilder Discord
  * @param {import('discord.js').User} user
- * @param {object} data — { xp, level, total_messages }
+ * @param {object} data â€” { xp, level, total_messages }
  * @param {number} rank
- * @param {import('discord.js').Guild} guild — Objet guild Discord
- * @param {number} totalUsers — Nombre total d'utilisateurs classés
+ * @param {import('discord.js').Guild} guild â€” Objet guild Discord
+ * @param {number} totalUsers â€” Nombre total d'utilisateurs classÃ©s
  * @returns {Promise<AttachmentBuilder>}
  */
 async function createRankCardAttachment(user, data, rank, guild, totalUsers) {
@@ -1124,7 +1124,7 @@ async function createRankCardAttachment(user, data, rank, guild, totalUsers) {
 }
 
 /**
- * Générer le leaderboard en image et le convertir en AttachmentBuilder
+ * GÃ©nÃ©rer le leaderboard en image et le convertir en AttachmentBuilder
  * @param {object[]} entries
  * @param {import('discord.js').Guild} guild
  * @param {Map<string, object>} userMap
