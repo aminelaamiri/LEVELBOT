@@ -13,27 +13,30 @@ const { xpForLevel, xpToNextLevel, progressPercent } = require('../systems/level
 // Inclut "Segoe UI Emoji" pour les caractÃ¨res spÃ©ciaux et symboles Unicode
 const FONT = '"Segoe UI", "DejaVu Sans", "Noto Sans", "Segoe UI Emoji", "Ebrima", "Tahoma", "Simplified Arabic", "Traditional Arabic", "Arial", sans-serif';
 
+const os = require('os');
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  ENREGISTREMENT DES POLICES SYSTÃˆME
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// Charger Segoe UI Emoji pour le rendu des symboles spÃ©ciaux sur Windows
-try {
-    const emojiPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'seguiemj.ttf');
-    GlobalFonts.registerFromPath(emojiPath, 'Segoe UI Emoji');
-} catch (e) {
-    console.warn('[RankCard] Impossible de charger Segoe UI Emoji:', e.message);
-}
-try {
-    const segoeUIPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'segoeui.ttf');
-    GlobalFonts.registerFromPath(segoeUIPath, 'Segoe UI');
-} catch (e) {
-    console.warn('[RankCard] Impossible de charger Segoe UI:', e.message);
-}
-try {
-    const ebrimaPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'ebrima.ttf');
-    GlobalFonts.registerFromPath(ebrimaPath, 'Ebrima');
-} catch (e) {
-    console.warn('[RankCard] Impossible de charger Ebrima:', e.message);
+if (os.platform() === 'win32') {
+    // Ne charger ces polices que sur Windows pour Ã©viter les plantages de Skia sous Linux
+    try {
+        const emojiPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'seguiemj.ttf');
+        GlobalFonts.registerFromPath(emojiPath, 'Segoe UI Emoji');
+    } catch (e) {
+        console.warn('[RankCard] Impossible de charger Segoe UI Emoji:', e.message);
+    }
+    try {
+        const segoeUIPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'segoeui.ttf');
+        GlobalFonts.registerFromPath(segoeUIPath, 'Segoe UI');
+    } catch (e) {
+        console.warn('[RankCard] Impossible de charger Segoe UI:', e.message);
+    }
+    try {
+        const ebrimaPath = path.join(process.env.SystemRoot || 'C:\\Windows', 'Fonts', 'ebrima.ttf');
+        GlobalFonts.registerFromPath(ebrimaPath, 'Ebrima');
+    } catch (e) {
+        console.warn('[RankCard] Impossible de charger Ebrima:', e.message);
+    }
 }
 
 // Regex : caractÃ¨res bien supportÃ©s par les polices systÃ¨me Windows
