@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - bot-data:/app/data
+    depends_on:
+      - db
+
+  # PostgreSQL (optionnel — supprimer si vous utilisez SQLite)
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: leveling
+      POSTGRES_USER: bot
+      POSTGRES_PASSWORD: changeme_strong_password
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+volumes:
+  bot-data:
+  pg-data:

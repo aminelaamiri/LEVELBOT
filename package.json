@@ -1,0 +1,28 @@
+{
+  "name": "discord-leveling-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord de leveling complet avec XP, niveaux, rôles automatiques et commandes d'administration",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test tests/",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\""
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.95",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.6.1",
+    "pg": "^8.13.1",
+    "sql.js": "^1.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.4.2"
+  }
+}
