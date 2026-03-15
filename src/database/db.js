@@ -275,7 +275,7 @@ function isBlacklisted(guildId, targetId) {
 function addToBlacklist(guildId, targetId, targetType) {
     const db = getDatabase();
     return db.run(
-        'INSERT OR IGNORE INTO blacklist (guild_id, target_id, target_type) VALUES (?, ?, ?)',
+        'INSERT INTO blacklist (guild_id, target_id, target_type) VALUES (?, ?, ?) ON CONFLICT DO NOTHING',
         [guildId, targetId, targetType],
     );
 }
