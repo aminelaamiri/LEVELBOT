@@ -1,5 +1,5 @@
 /**
- * db.js — Couche d'abstraction base de données
+ * db.js â€” Couche d'abstraction base de donnÃ©es
  * Supporte SQLite (sql.js, pur JavaScript) pour dev et PostgreSQL (pg) pour prod
  * Le choix se fait via DATABASE_URL : vide = SQLite, rempli = PostgreSQL
  */
@@ -9,9 +9,9 @@ const fs = require('fs');
 let dbInstance = null;
 
 /**
- * Créer et retourner l'instance DB singleton
- * @param {string} databaseUrl — URL PostgreSQL ou vide pour SQLite
- * @returns {Promise<object>} — Instance DB avec méthodes standardisées
+ * CrÃ©er et retourner l'instance DB singleton
+ * @param {string} databaseUrl â€” URL PostgreSQL ou vide pour SQLite
+ * @returns {Promise<object>} â€” Instance DB avec mÃ©thodes standardisÃ©es
  */
 async function createDatabase(databaseUrl) {
     if (dbInstance) return dbInstance;
@@ -26,7 +26,7 @@ async function createDatabase(databaseUrl) {
 }
 
 /**
- * Créer une instance SQLite via sql.js (pur JavaScript, pas de compilation native)
+ * CrÃ©er une instance SQLite via sql.js (pur JavaScript, pas de compilation native)
  */
 async function createSQLiteDB() {
     const initSqlJs = require('sql.js');
@@ -44,7 +44,7 @@ async function createSQLiteDB() {
         db = new SQL.Database();
     }
 
-    console.log(`📂 Base de données SQLite : ${dbPath}`);
+    console.log(`ðŸ“‚ Base de donnÃ©es SQLite : ${dbPath}`);
 
     // Sauvegarder automatiquement toutes les 30 secondes
     const saveInterval = setInterval(() => {
@@ -53,18 +53,18 @@ async function createSQLiteDB() {
             const buffer = Buffer.from(data);
             fs.writeFileSync(dbPath, buffer);
         } catch (err) {
-            console.error('⚠️ Erreur sauvegarde SQLite:', err.message);
+            console.error('âš ï¸ Erreur sauvegarde SQLite:', err.message);
         }
     }, 30000);
 
-    // Sauvegarder à la fermeture
+    // Sauvegarder Ã  la fermeture
     function saveNow() {
         try {
             const data = db.export();
             const buffer = Buffer.from(data);
             fs.writeFileSync(dbPath, buffer);
         } catch (err) {
-            console.error('⚠️ Erreur sauvegarde SQLite:', err.message);
+            console.error('âš ï¸ Erreur sauvegarde SQLite:', err.message);
         }
     }
 
@@ -78,13 +78,13 @@ async function createSQLiteDB() {
         _saveInterval: saveInterval,
         _saveFn: saveNow,
 
-        /** Exécuter une commande SQL (CREATE, INSERT, UPDATE, DELETE) */
+        /** ExÃ©cuter une commande SQL (CREATE, INSERT, UPDATE, DELETE) */
         exec(sql) {
             db.run(sql);
             saveNow();
         },
 
-        /** Récupérer une seule ligne */
+        /** RÃ©cupÃ©rer une seule ligne */
         get(sql, params = []) {
             const stmt = db.prepare(sql);
             stmt.bind(params);
@@ -100,7 +100,7 @@ async function createSQLiteDB() {
             return null;
         },
 
-        /** Récupérer plusieurs lignes */
+        /** RÃ©cupÃ©rer plusieurs lignes */
         all(sql, params = []) {
             const stmt = db.prepare(sql);
             stmt.bind(params);
@@ -116,7 +116,7 @@ async function createSQLiteDB() {
             return rows;
         },
 
-        /** Exécuter une commande avec paramètres (INSERT, UPDATE, DELETE) */
+        /** ExÃ©cuter une commande avec paramÃ¨tres (INSERT, UPDATE, DELETE) */
         run(sql, params = []) {
             db.run(sql, params);
             saveNow();
@@ -133,13 +133,13 @@ async function createSQLiteDB() {
 }
 
 /**
- * Créer une instance PostgreSQL (production)
+ * CrÃ©er une instance PostgreSQL (production)
  */
 function createPostgresDB(url) {
     const { Pool } = require('pg');
     const pool = new Pool({ connectionString: url, ssl: { rejectUnauthorized: false } });
 
-    console.log('🐘 Base de données PostgreSQL connectée.');
+    console.log('ðŸ˜ Base de donnÃ©es PostgreSQL connectÃ©e.');
 
     return {
         isPostgres: true,
@@ -149,17 +149,23 @@ function createPostgresDB(url) {
         },
 
         async get(sql, params = []) {
-            const result = await pool.query(sql, params);
+            let i = 1;
+            const pgSql = sql.replace(/\?/g, () => `$${i++}`);
+            const result = await pool.query(pgSql, params);
             return result.rows[0] || null;
         },
 
         async all(sql, params = []) {
-            const result = await pool.query(sql, params);
+            let i = 1;
+            const pgSql = sql.replace(/\?/g, () => `$${i++}`);
+            const result = await pool.query(pgSql, params);
             return result.rows;
         },
 
         async run(sql, params = []) {
-            const result = await pool.query(sql, params);
+            let i = 1;
+            const pgSql = sql.replace(/\?/g, () => `$${i++}`);
+            const result = await pool.query(pgSql, params);
             return { changes: result.rowCount };
         },
 
@@ -174,17 +180,17 @@ function createPostgresDB(url) {
  */
 function getDatabase() {
     if (!dbInstance) {
-        throw new Error('Base de données non initialisée. Appelez createDatabase() d\'abord.');
+        throw new Error('Base de donnÃ©es non initialisÃ©e. Appelez createDatabase() d\'abord.');
     }
     return dbInstance;
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //  Fonctions CRUD haut niveau
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Récupérer les données d'un utilisateur dans un serveur
+ * RÃ©cupÃ©rer les donnÃ©es d'un utilisateur dans un serveur
  */
 function getUser(userId, guildId) {
     const db = getDatabase();
@@ -192,7 +198,7 @@ function getUser(userId, guildId) {
 }
 
 /**
- * Créer ou mettre à jour un utilisateur
+ * CrÃ©er ou mettre Ã  jour un utilisateur
  */
 function upsertUser(userId, guildId, data) {
     const db = getDatabase();
@@ -207,7 +213,7 @@ function upsertUser(userId, guildId, data) {
 }
 
 /**
- * Récupérer le leaderboard (top N utilisateurs triés par XP)
+ * RÃ©cupÃ©rer le leaderboard (top N utilisateurs triÃ©s par XP)
  */
 function getLeaderboard(guildId, limit = 10, offset = 0) {
     const db = getDatabase();
@@ -238,7 +244,7 @@ function getUserCount(guildId) {
     return row?.count ?? 0;
 }
 
-// ─── Role Map ───
+// â”€â”€â”€ Role Map â”€â”€â”€
 
 function getRoleMap(guildId) {
     const db = getDatabase();
@@ -259,7 +265,7 @@ function removeRoleMapping(guildId, level) {
     return db.run('DELETE FROM role_map WHERE guild_id = ? AND level = ?', [guildId, level]);
 }
 
-// ─── Blacklist ───
+// â”€â”€â”€ Blacklist â”€â”€â”€
 
 function isBlacklisted(guildId, targetId) {
     const db = getDatabase();
@@ -284,7 +290,7 @@ function getBlacklist(guildId) {
     return db.all('SELECT target_id, target_type FROM blacklist WHERE guild_id = ?', [guildId]);
 }
 
-// ─── Event Logs ───
+// â”€â”€â”€ Event Logs â”€â”€â”€
 
 function addLog(guildId, eventType, userId, details) {
     const db = getDatabase();
@@ -295,7 +301,7 @@ function addLog(guildId, eventType, userId, details) {
     );
 }
 
-// ─── Export / Import ───
+// â”€â”€â”€ Export / Import â”€â”€â”€
 
 function getAllUsers(guildId) {
     const db = getDatabase();
